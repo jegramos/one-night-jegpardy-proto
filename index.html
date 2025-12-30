@@ -1119,16 +1119,19 @@
     <div id="game-container">
         <!-- Menu Screen -->
         <div id="menu-screen">
-            <h1 class="animate__animated animate__bounceIn">
+            <h1 id="game-title" class="animate__animated animate__bounceIn">
                 <span class="tropical-emoji">🌺</span>
                 New Year Jeopardy
                 <span class="tropical-emoji">🎆</span>
             </h1>
-            <h1 class="subtitle animate__animated animate__fadeIn animate__delay-1s">
+            <h1 id="game-subtitle" class="subtitle animate__animated animate__fadeIn animate__delay-1s">
                 🎊 Family Party Edition 🎊
             </h1>
 			<br />
-            <div class="menu-content animate__animated animate__fadeIn animate__delay-1s">
+            <div class="menu-content animate__animated animate__fadeIn animate__delay-1s" style="position: relative;">
+                <button onclick="openPersonalize()" style="position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); border: 2px solid var(--firework-gold); border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 1.5rem; color: var(--firework-gold); transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'" title="Personalize">
+                    🎨
+                </button>
                 <div class="team-selector">
                     <label for="board-select">Select Board 📋</label>
                     <select id="board-select">
@@ -1259,8 +1262,11 @@
     <!-- Board Management Modal -->
     <div id="board-manager-modal" class="modal">
         <div class="modal-content" style="max-width: 95%; max-height: 95%;">
-            <div class="modal-header">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="color: white; margin: 0;">Board Manager 📋</h2>
+                <button class="modal-btn close-btn" onclick="closeBoardManager()" style="padding: 8px 16px; font-size: 1rem; background: transparent; border: none; color: white; box-shadow: none;">
+                    ✕ Close
+                </button>
             </div>
             <div style="display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 300px;">
@@ -1289,13 +1295,42 @@
                             <button class="modal-btn" onclick="deleteCurrentBoard()" style="background: linear-gradient(135deg, var(--sunset-pink) 0%, var(--tropical-orange) 100%); flex: 1;">
                                 Delete Board
                             </button>
-                            <button class="modal-btn close-btn" onclick="closeBoardManager()" style="flex: 1;">
+                            <button class="modal-btn close-btn" onclick="closeBoardManager()" style="flex: 1; background: transparent; border: 2px solid rgba(255,255,255,0.3); color: white; box-shadow: none;">
                                 Close
                             </button>
                         </div>
                     </div>
                     <div id="board-editor-placeholder" style="text-align: center; color: var(--sand-yellow); padding: 40px;">
                         Select a board to edit or create a new one
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Personalize Modal -->
+    <div id="personalize-modal" class="modal">
+        <div class="modal-content" style="max-width: 950px; padding: 10px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="color: white; margin: 0;">Personalize 🎨</h2>
+            </div>
+            <div style="margin-top: 10px;">
+                <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 30px; width: 100%; box-sizing: border-box; min-width: 0;">
+                    <div style="margin-bottom: 10px;">
+                        <label style="color: white; display: block; margin-bottom: 8px; font-size: 1.1rem; font-weight: 600;">Game Title:</label>
+                        <input type="text" id="settings-title-input" style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--firework-gold); background: rgba(255,255,255,0.2); color: white; font-size: 1rem;" placeholder="New Year Jeopardy">
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="color: white; display: block; margin-bottom: 8px; font-size: 1.1rem; font-weight: 600;">Subtitle:</label>
+                        <input type="text" id="settings-subtitle-input" style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--firework-gold); background: rgba(255,255,255,0.2); color: white; font-size: 1rem;" placeholder="Family Party Edition">
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 25px;">
+                        <button class="modal-btn" onclick="saveSettings()" style="background: linear-gradient(135deg, var(--palm-green) 0%, var(--ocean-blue) 100%); flex: 1; padding: 12px;">
+                            Save
+                        </button>
+                        <button class="modal-btn close-btn" onclick="closePersonalize()" style="flex: 1; padding: 12px; background: transparent; border: 2px solid rgba(255,255,255,0.3); color: white; box-shadow: none;">
+                            Cancel
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1779,12 +1814,22 @@
 
         function handleKeyPress(e) {
             const modal = document.getElementById('modal');
+            const boardManagerModal = document.getElementById('board-manager-modal');
+            const personalizeModal = document.getElementById('personalize-modal');
             const isModalOpen = modal.classList.contains('active');
+            const isBoardManagerOpen = boardManagerModal && boardManagerModal.classList.contains('active');
+            const isPersonalizeOpen = personalizeModal && personalizeModal.classList.contains('active');
             const isTeamSelectionVisible = document.getElementById('modal-teams').classList.contains('visible');
 
-            // ESC - Close modal
-            if (e.key === 'Escape' && isModalOpen) {
-                closeModal();
+            // ESC - Close modals
+            if (e.key === 'Escape') {
+                if (isPersonalizeOpen) {
+                    closePersonalize();
+                } else if (isBoardManagerOpen) {
+                    closeBoardManager();
+                } else if (isModalOpen) {
+                    closeModal();
+                }
             }
 
             // Space - Reveal answer
@@ -2137,6 +2182,64 @@
             currentEditingBoardId = null;
             document.getElementById('board-editor').style.display = 'none';
             document.getElementById('board-editor-placeholder').style.display = 'block';
+        }
+
+        function openPersonalize() {
+            loadTitleAndSubtitle(); // Load current values into inputs
+            document.getElementById('personalize-modal').classList.add('active');
+        }
+
+        function closePersonalize() {
+            document.getElementById('personalize-modal').classList.remove('active');
+        }
+
+        // Title and Subtitle Configuration
+        const TITLE_STORAGE_KEY = 'jeopardyGameTitle';
+        const SUBTITLE_STORAGE_KEY = 'jeopardyGameSubtitle';
+
+        function loadTitleAndSubtitle() {
+            const savedTitle = localStorage.getItem(TITLE_STORAGE_KEY);
+            const savedSubtitle = localStorage.getItem(SUBTITLE_STORAGE_KEY);
+
+            // Load into settings inputs
+            if (document.getElementById('settings-title-input')) {
+                document.getElementById('settings-title-input').value = savedTitle || 'New Year Jeopardy';
+            }
+            if (document.getElementById('settings-subtitle-input')) {
+                document.getElementById('settings-subtitle-input').value = savedSubtitle || 'Family Party Edition';
+            }
+
+            // Update display
+            updateTitleAndSubtitleDisplay(savedTitle, savedSubtitle);
+        }
+
+        function updateTitleAndSubtitleDisplay(title, subtitle) {
+            const titleElement = document.getElementById('game-title');
+            const subtitleElement = document.getElementById('game-subtitle');
+
+            if (titleElement) {
+                // Use default emojis, user can include their own in the title text if desired
+                titleElement.innerHTML = `<span class="tropical-emoji">🌺</span> ${title || 'New Year Jeopardy'} <span class="tropical-emoji">🎆</span>`;
+            }
+
+            if (subtitleElement) {
+                subtitleElement.textContent = subtitle || 'Family Party Edition';
+            }
+
+            // Update page title
+            document.title = `${title || 'New Year Jeopardy'} - Jeopardy Game`;
+        }
+
+        function saveSettings() {
+            const title = document.getElementById('settings-title-input').value.trim() || 'New Year Jeopardy';
+            const subtitle = document.getElementById('settings-subtitle-input').value.trim() || 'Family Party Edition';
+
+            localStorage.setItem(TITLE_STORAGE_KEY, title);
+            localStorage.setItem(SUBTITLE_STORAGE_KEY, subtitle);
+
+            updateTitleAndSubtitleDisplay(title, subtitle);
+            alert('Settings saved successfully!');
+            closePersonalize();
         }
 
         function renderBoardsList() {
@@ -2664,6 +2767,8 @@
                 initializeDefaultBoards();
                 // Update button text after boards are loaded
                 updateStartButtonText();
+                // Load title and subtitle
+                loadTitleAndSubtitle();
             }, 100);
             const menuContent = document.querySelector('.menu-content');
 
