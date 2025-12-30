@@ -155,7 +155,7 @@
             border: 2px solid rgba(255, 215, 0, 0.3);
             border-radius: 20px;
             padding: 40px;
-            max-width: 500px;
+            max-width: 700px;
             width: 100%;
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
         }
@@ -204,6 +204,7 @@
 
         .start-btn {
             margin-top: 30px;
+            margin-right: 5px;
             padding: 15px 50px;
             font-size: 1.3rem;
             font-weight: 700;
@@ -224,6 +225,92 @@
 
         .start-btn:active {
             transform: translateY(-1px);
+        }
+
+        /* Rules Section */
+        .rules-section {
+            margin: 25px 0 15px 0;
+            width: 100%;
+        }
+
+        .rules-accordion {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid var(--firework-gold);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .rules-accordion[open] {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .rules-header {
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--firework-gold);
+            cursor: pointer;
+            list-style: none;
+            text-align: center;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .rules-header::-webkit-details-marker {
+            display: none;
+        }
+
+        .rules-header::after {
+            content: ' ▼';
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+
+        .rules-accordion[open] .rules-header::after {
+            transform: rotate(180deg);
+        }
+
+        .rules-header:hover {
+            color: var(--sand-yellow);
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .rules-content {
+            padding: 20px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .rules-list {
+            text-align: left;
+            color: white;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .rules-list li {
+            margin-bottom: 15px;
+            padding-left: 10px;
+        }
+
+        .rules-list li strong {
+            color: var(--sand-yellow);
+            display: block;
+            margin-bottom: 5px;
         }
 
         /* Game Board */
@@ -646,6 +733,19 @@
             .team-card {
                 max-width: 100%;
             }
+
+            .rules-list {
+                font-size: 0.85rem;
+            }
+
+            .rules-header {
+                font-size: 1rem;
+                padding: 12px 15px;
+            }
+
+            .rules-content {
+                padding: 15px;
+            }
         }
 
         /* Fireworks effect */
@@ -995,7 +1095,6 @@
                 <div class="team-selector">
                     <label for="team-count">How many teams? 🏝️</label>
                     <select id="team-count">
-                        <option value="0">No Teams</option>
                         <option value="1">1 Team</option>
                         <option value="2">2 Teams</option>
                         <option value="3" selected>3 Teams</option>
@@ -1008,6 +1107,45 @@
                         <option value="10">10 Teams</option>
                     </select>
                 </div>
+
+                <!-- Start Rules -->
+                <div class="rules-section">
+                    <details class="rules-accordion">
+                        <summary class="rules-header">
+                            📜 Game Rules 📜
+                        </summary>
+                        <div class="rules-content">
+                            <ol class="rules-list">
+                                <li>
+                                    <strong>Team Composition:</strong> The game will consist of three to four teams. Each team must have exactly three members, ideally representing a cross-section of generations: one Baby Boomer, one Millennial, and one Gen Z. To encourage family bonding, a team must not consist solely of a single nuclear family.
+                                </li>
+                                <li>
+                                    <strong>The "Buzzer" System:</strong> To answer a question, a team must loudly shout their Team Name. The first team heard by the host will be given the floor.
+                                </li>
+                                <li>
+                                    <strong>Answering and Clues:</strong> If no teams can provide the correct answer, the host may provide a clue. After the clue is given, all teams will be granted a second chance to buzz in and answer.
+                                </li>
+                                <li>
+                                    <strong>Scoring & Victory:</strong> The team with the highest total points at the end of the final round wins the Grand Prize.
+                                </li>
+                                <li>
+                                    <strong>Runner-up:</strong> The team with the second-highest score will receive a Consolation Prize.
+                                </li>
+                                <li>
+                                    <strong>Fair Play Policy:</strong> To keep the competition fair, any coaching or shouting of answers from the audience (non-players) is strictly prohibited. Furthermore, the use of smartphones or any internet-connected devices to search for answers is not allowed. Any team caught receiving outside help will have the points for that round forfeited.
+                                </li>
+                                <li>
+                                    <strong>The "Huddle" Rule:</strong> Teams have a maximum of 10 seconds to "huddle" and finalize their answer before speaking. This ensures the Gen Z and Boomer members actually talk to each other!
+                                </li>
+                                <li>
+                                    <strong>The "Respect the Host" Rule:</strong> The Host's decision is final. Any "pagrereklamo" (complaining) results in a 50-point deduction!
+                                </li>
+                            </ol>
+                        </div>
+                    </details>
+                </div>
+                <!-- End Rules -->
+
                 <button class="start-btn" onclick="startGame()">
                     Start Game! 🎊
                 </button>
