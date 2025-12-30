@@ -119,5 +119,5 @@ Created with ❤️ using:
 
 ---
 
-**Happy New Year! 🎊 Manigong Bagong Taon! 🌺**
+**Happy New Year! 🎊 Maligayang Bagong Taon! 🌺**
 
