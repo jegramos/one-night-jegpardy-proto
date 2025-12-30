@@ -13,9 +13,9 @@
     <!-- Animate.css for animations -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
-    <!-- Questions Database -->
-    <!-- TO SWAP QUESTION SETS: Simply change the filename below -->
-    <script src="questions.js"></script> <!-- 5 categories, 25 questions -->
+    <!-- Questions Database Seeder -->
+    <!-- This file seeds the default boards. Custom boards are stored in localStorage -->
+    <script src="seed-questions.js"></script> <!-- Combined seeder with all default boards -->
 
     <style>
         :root {
@@ -200,6 +200,12 @@
         select option {
             background: var(--deep-ocean);
             color: white;
+        }
+
+        select option:disabled {
+            background: rgba(255, 107, 53, 0.2);
+            color: var(--tropical-orange);
+            font-style: italic;
         }
 
         .start-btn {
@@ -1069,6 +1075,37 @@
             .score-row-team { font-size: 1.2rem; }
             .score-row-points { font-size: 1.5rem; }
         }
+
+        /* Board Manager Styles */
+        #board-manager-modal .modal-content {
+            max-width: 95%;
+            max-height: 95%;
+        }
+
+        #boards-list::-webkit-scrollbar,
+        #categories-editor::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #boards-list::-webkit-scrollbar-track,
+        #categories-editor::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #boards-list::-webkit-scrollbar-thumb,
+        #categories-editor::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        #boards-list::-webkit-scrollbar-thumb:hover,
+        #categories-editor::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -1088,10 +1125,17 @@
                 <span class="tropical-emoji">🎆</span>
             </h1>
             <h1 class="subtitle animate__animated animate__fadeIn animate__delay-1s">
-                🎊 Delica Edition 🎊
+                🎊 Family Party Edition 🎊
             </h1>
 			<br />
             <div class="menu-content animate__animated animate__fadeIn animate__delay-1s">
+                <div class="team-selector">
+                    <label for="board-select">Select Board 📋</label>
+                    <select id="board-select">
+                        <!-- Boards will be dynamically loaded -->
+                    </select>
+                </div>
+
                 <div class="team-selector">
                     <label for="team-count">How many teams? 🏝️</label>
                     <select id="team-count">
@@ -1146,8 +1190,11 @@
                 </div>
                 <!-- End Rules -->
 
-                <button class="start-btn" onclick="startGame()">
+                <button id="start-game-btn" class="start-btn" onclick="startGame()">
                     Start Game! 🎊
+                </button>
+                <button class="start-btn" onclick="openBoardManager()" style="background: linear-gradient(135deg, var(--ocean-blue) 0%, var(--night-purple) 100%); margin-top: 15px;">
+                    Manage Boards 📋
                 </button>
             </div>
         </div>
@@ -1157,7 +1204,7 @@
             <button class="menu-button" onclick="backToMenu()">Menu 🏠</button>
 
             <div class="game-board" id="game-board">
-                <!-- Game board will be dynamically generated from questions.js -->
+                <!-- Game board will be dynamically generated from the selected board -->
             </div>
 
             <!-- Teams Section -->
@@ -1209,6 +1256,52 @@
         </div>
     </div>
 
+    <!-- Board Management Modal -->
+    <div id="board-manager-modal" class="modal">
+        <div class="modal-content" style="max-width: 95%; max-height: 95%;">
+            <div class="modal-header">
+                <h2 style="color: white; margin: 0;">Board Manager 📋</h2>
+            </div>
+            <div style="display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 300px;">
+                    <h3 style="color: var(--sand-yellow); margin-bottom: 15px;">Boards</h3>
+                    <div id="boards-list" style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 15px; max-height: 400px; overflow-y: auto;">
+                        <!-- Boards list will be populated here -->
+                    </div>
+                    <button class="modal-btn" onclick="createNewBoard()" style="background: linear-gradient(135deg, var(--palm-green) 0%, var(--ocean-blue) 100%); margin-top: 15px; width: 100%;">
+                        + New Board
+                    </button>
+                </div>
+                <div style="flex: 2; min-width: 400px;">
+                    <div id="board-editor" style="display: none;">
+                        <h3 style="color: var(--sand-yellow); margin-bottom: 15px;">Edit Board</h3>
+                        <div style="margin-bottom: 15px;">
+                            <label style="color: white; display: block; margin-bottom: 5px;">Board Name:</label>
+                            <input type="text" id="board-name-input" style="width: 100%; padding: 10px; border-radius: 8px; border: 2px solid var(--firework-gold); background: rgba(255,255,255,0.2); color: white; font-size: 1rem;">
+                        </div>
+                        <div id="categories-editor" style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 15px; max-height: 500px; overflow-y: auto;">
+                            <!-- Categories and questions editor -->
+                        </div>
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            <button class="modal-btn" onclick="saveCurrentBoard()" style="background: linear-gradient(135deg, var(--palm-green) 0%, var(--ocean-blue) 100%); flex: 1;">
+                                Save Board
+                            </button>
+                            <button class="modal-btn" onclick="deleteCurrentBoard()" style="background: linear-gradient(135deg, var(--sunset-pink) 0%, var(--tropical-orange) 100%); flex: 1;">
+                                Delete Board
+                            </button>
+                            <button class="modal-btn close-btn" onclick="closeBoardManager()" style="flex: 1;">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                    <div id="board-editor-placeholder" style="text-align: center; color: var(--sand-yellow); padding: 40px;">
+                        Select a board to edit or create a new one
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Winner Screen -->
     <div id="winner-screen" class="winner-screen">
         <div class="winner-content">
@@ -1225,26 +1318,55 @@
     </div>
 
     <script>
+        // Load default boards from seed-questions.js
+        // The seeder file contains an array of default boards
+        function initializeDefaultBoards() {
+            // Check if jeopardySeedBoards is available (the new combined seeder format)
+            if (typeof jeopardySeedBoards !== 'undefined' && Array.isArray(jeopardySeedBoards)) {
+                // Use the new combined seeder format
+                // Boards are already in the correct format, just add them to allBoards
+                // They will be added in loadBoards() function
+                loadBoards();
+            } else {
+                // Fallback: Try to load from old format if it exists
+                // This is for backwards compatibility
+                loadBoards();
+            }
+        }
+
+        // Board Management
+        const BOARD_STORAGE_KEY = 'jeopardyBoards';
+        let currentEditingBoardId = null;
+        let allBoards = [];
+
         // Game State
         let gameState = {
             teams: [],
             currentQuestion: null,
             answeredQuestions: new Set(),
             activeTeam: null,
-            modalSelectedTeam: null
+            modalSelectedTeam: null,
+            currentBoard: null
         };
 
-        // Generate game board from questions.js
+        // Generate game board from selected board
         function generateGameBoard() {
             const gameBoard = document.getElementById('game-board');
             gameBoard.innerHTML = '';
 
+            if (!gameState.currentBoard) {
+                console.error('No board selected');
+                return;
+            }
+
+            const board = gameState.currentBoard;
+
             // Dynamically set grid columns based on number of categories
-            const numCategories = jeopardyQuestions.categories.length;
+            const numCategories = board.categories.length;
             gameBoard.style.gridTemplateColumns = `repeat(${numCategories}, 1fr)`;
 
             // Add category headers
-            jeopardyQuestions.categories.forEach(category => {
+            board.categories.forEach(category => {
                 const categoryCell = document.createElement('div');
                 categoryCell.className = 'category-cell';
                 categoryCell.textContent = category;
@@ -1252,7 +1374,7 @@
             });
 
             // Add question cells
-            jeopardyQuestions.questions.forEach(row => {
+            board.questions.forEach(row => {
                 row.forEach(questionData => {
                     const questionCell = document.createElement('div');
                     questionCell.className = 'question-cell';
@@ -1277,6 +1399,27 @@
         // Initialize game
         function startGame() {
             const teamCount = parseInt(document.getElementById('team-count').value);
+            const boardSelect = document.getElementById('board-select');
+            const selectedBoardId = boardSelect.value;
+
+            // Load selected board
+            if (selectedBoardId) {
+                const board = allBoards.find(b => b.id === selectedBoardId);
+                if (board) {
+                    // Check if board is complete
+                    if (!isBoardComplete(board)) {
+                        alert('Cannot start game with an incomplete board. Please complete the board in the Board Manager first.');
+                        return;
+                    }
+                    gameState.currentBoard = board;
+                } else {
+                    alert('Selected board not found. Please select a valid board.');
+                    return;
+                }
+            } else {
+                alert('Please select a board to start the game.');
+                return;
+            }
 
             // Generate the game board first
             generateGameBoard();
@@ -1507,18 +1650,13 @@
         }
 
         function checkGameCompletion() {
-            // Calculate total questions
-            const totalQuestions = jeopardyQuestions.questions.reduce((total, row) => total + row.length, 0);
+            if (!gameState.currentBoard) return;
 
-            console.log('Checking game completion:', {
-                answeredCount: gameState.answeredQuestions.size,
-                totalQuestions: totalQuestions,
-                teamsCount: gameState.teams.length
-            });
+            // Calculate total questions
+            const totalQuestions = gameState.currentBoard.questions.reduce((total, row) => total + row.length, 0);
 
             // Check if all questions have been answered
             if (gameState.answeredQuestions.size === totalQuestions && gameState.teams.length > 0) {
-                console.log('Game completed! Showing winner screen...');
                 // Small delay for better UX
                 setTimeout(() => {
                     showWinnerScreen();
@@ -1596,6 +1734,7 @@
 
             // Clear the saved game state to prevent re-triggering winner screen
             localStorage.removeItem('hawaiianJeopardyState');
+            updateStartButtonText();
 
             // Reset game state
             gameState.teams = [];
@@ -1682,6 +1821,7 @@
                 document.getElementById('menu-screen').style.display = 'flex';
                 document.querySelector('.menu-button').style.display = 'none';
                 closeModal();
+                updateStartButtonText();
             }
         }
 
@@ -1695,6 +1835,32 @@
                 localStorage.setItem('hawaiianJeopardyState', JSON.stringify(state));
             } catch (e) {
                 console.error('Could not save game state:', e);
+            }
+        }
+
+        function hasSavedGameState() {
+            try {
+                const saved = localStorage.getItem('hawaiianJeopardyState');
+                if (saved) {
+                    const state = JSON.parse(saved);
+                    // Check if there's meaningful game data (teams or answered questions)
+                    return (state.teams && state.teams.length > 0) ||
+                           (state.answeredQuestions && state.answeredQuestions.length > 0);
+                }
+            } catch (e) {
+                // If parsing fails, assume no saved state
+            }
+            return false;
+        }
+
+        function updateStartButtonText() {
+            const startBtn = document.getElementById('start-game-btn');
+            if (startBtn) {
+                if (hasSavedGameState()) {
+                    startBtn.textContent = 'Resume Game 🎮';
+                } else {
+                    startBtn.textContent = 'Start Game! 🎊';
+                }
             }
         }
 
@@ -1782,9 +1948,726 @@
             }
         }
 
+        // Function to clear localStorage (useful for debugging)
+        function clearBoardStorage() {
+            if (confirm('Clear all saved boards from localStorage? This will remove all custom boards but keep the default seeded boards.')) {
+                localStorage.removeItem(BOARD_STORAGE_KEY);
+                localStorage.removeItem('hawaiianJeopardyState'); // Also clear game state
+                alert('localStorage cleared! Reloading page...');
+                location.reload();
+            }
+        }
+
+        // Board Management Functions
+        // Helper function to normalize category names (remove emojis and extra whitespace)
+        function normalizeCategoryName(category) {
+            if (!category) return '';
+            // Remove emojis by matching common emoji patterns
+            // Keep all text characters including accented characters
+            let normalized = category
+                // Remove emoji patterns (most common ranges)
+                .replace(/[\u{1F300}-\u{1F9FF}]/gu, '') // Miscellaneous Symbols and Pictographs
+                .replace(/[\u{2600}-\u{26FF}]/gu, '') // Miscellaneous Symbols
+                .replace(/[\u{2700}-\u{27BF}]/gu, '') // Dingbats
+                .replace(/[\u{1F1E0}-\u{1F1FF}]{2}/gu, '') // Flag emojis (2 regional indicators)
+                .replace(/[\u{FE00}-\u{FE0F}]/gu, '') // Variation Selectors
+                .replace(/[\u{200D}]/gu, '') // Zero Width Joiner
+                .replace(/\s+/g, ' ') // Normalize whitespace
+                .trim();
+            return normalized;
+        }
+
+        // Validate if a board is complete
+        function isBoardComplete(board) {
+            if (!board) return false;
+
+            // Check if board has a name
+            if (!board.name || board.name.trim() === '') return false;
+
+            // Check if board has at least one category
+            if (!board.categories || !Array.isArray(board.categories) || board.categories.length === 0) return false;
+
+            // Check if board has questions
+            if (!board.questions || !Array.isArray(board.questions) || board.questions.length === 0) return false;
+
+            // Check if all categories have questions for all point values
+            // Board can have any number of categories (at least 1), but each category must have all point values filled
+            const pointsValues = [100, 200, 300, 400, 500];
+
+            for (let category of board.categories) {
+                if (!category || category.trim() === '') return false;
+
+                // Normalize category name for comparison (remove emojis)
+                const normalizedCategory = normalizeCategoryName(category);
+
+                for (let points of pointsValues) {
+                    // Find question for this category and points
+                    let found = false;
+                    // Search through all question rows
+                    for (let rowIndex = 0; rowIndex < board.questions.length; rowIndex++) {
+                        const row = board.questions[rowIndex];
+                        if (Array.isArray(row)) {
+                            // Search through all questions in this row
+                            for (let qIndex = 0; qIndex < row.length; qIndex++) {
+                                const q = row[qIndex];
+                                if (q && q.category && q.points === points) {
+                                    // Normalize both category names for comparison
+                                    const normalizedQuestionCategory = normalizeCategoryName(q.category);
+                                    if (normalizedQuestionCategory === normalizedCategory) {
+                                        // Check if question has required fields (question text and answer must be filled)
+                                        if (!q.question || q.question.trim() === '' ||
+                                            !q.answer || q.answer.trim() === '') {
+                                            return false; // Incomplete question - missing question text or answer
+                                        }
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (found) break;
+                        }
+                    }
+                    if (!found) {
+                        return false; // Missing question for this category/points
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        function loadBoards() {
+            allBoards = [];
+
+            // Load default boards from seeder if they exist
+            if (typeof jeopardySeedBoards !== 'undefined' && Array.isArray(jeopardySeedBoards)) {
+                // Add all boards (complete or incomplete) - we'll mark them later
+                jeopardySeedBoards.forEach(board => {
+                    if (board && board.categories && board.questions) {
+                        allBoards.push(board);
+                    }
+                });
+            }
+
+            // Load custom boards from localStorage
+            try {
+                const saved = localStorage.getItem(BOARD_STORAGE_KEY);
+                if (saved) {
+                    const customBoards = JSON.parse(saved);
+                    if (Array.isArray(customBoards)) {
+                        allBoards = allBoards.concat(customBoards);
+                    }
+                }
+            } catch (e) {
+                console.error('Error loading boards from localStorage:', e);
+            }
+
+            // Update board selector
+            updateBoardSelector();
+        }
+
+        function saveBoards() {
+            // Save only custom boards (not default ones)
+            const customBoards = allBoards.filter(b => !b.id.startsWith('default-'));
+            try {
+                localStorage.setItem(BOARD_STORAGE_KEY, JSON.stringify(customBoards));
+            } catch (e) {
+                console.error('Error saving boards to localStorage:', e);
+            }
+        }
+
+        function updateBoardSelector() {
+            const boardSelect = document.getElementById('board-select');
+            boardSelect.innerHTML = '';
+
+            // Separate complete and incomplete boards
+            const completeBoards = [];
+            const incompleteBoards = [];
+
+            allBoards.forEach(board => {
+                if (isBoardComplete(board)) {
+                    completeBoards.push(board);
+                } else {
+                    incompleteBoards.push(board);
+                }
+            });
+
+            // Add complete boards first
+            completeBoards.forEach(board => {
+                const option = document.createElement('option');
+                option.value = board.id;
+                option.textContent = board.name;
+                boardSelect.appendChild(option);
+            });
+
+            // Add incomplete boards with warning icon (disabled)
+            if (incompleteBoards.length > 0) {
+                const separator = document.createElement('option');
+                separator.disabled = true;
+                separator.textContent = '─── Incomplete Boards ───';
+                boardSelect.appendChild(separator);
+
+                incompleteBoards.forEach(board => {
+                    const option = document.createElement('option');
+                    option.value = board.id;
+                    option.textContent = `⚠️ ${board.name} (Incomplete)`;
+                    option.disabled = true;
+                    option.style.color = '#ff6b35';
+                    boardSelect.appendChild(option);
+                });
+            }
+
+            // Select first complete board by default
+            if (completeBoards.length > 0) {
+                boardSelect.value = completeBoards[0].id;
+            } else if (allBoards.length > 0) {
+                // If no complete boards, select first board but it will be disabled
+                boardSelect.value = allBoards[0].id;
+            }
+        }
+
+        function openBoardManager() {
+            loadBoards();
+            renderBoardsList();
+            document.getElementById('board-manager-modal').classList.add('active');
+        }
+
+        function closeBoardManager() {
+            document.getElementById('board-manager-modal').classList.remove('active');
+            currentEditingBoardId = null;
+            document.getElementById('board-editor').style.display = 'none';
+            document.getElementById('board-editor-placeholder').style.display = 'block';
+        }
+
+        function renderBoardsList() {
+            const boardsList = document.getElementById('boards-list');
+            boardsList.innerHTML = '';
+
+            allBoards.forEach(board => {
+                const isComplete = isBoardComplete(board);
+                const boardItem = document.createElement('div');
+                boardItem.style.cssText = 'padding: 10px; margin: 5px 0; background: rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.3s;';
+
+                const warningIcon = isComplete ? '' : '⚠️ ';
+                const statusText = isComplete ? '' : '<span style="color: var(--tropical-orange); font-size: 0.8rem;"> (Incomplete)</span>';
+
+                boardItem.innerHTML = `
+                    <div style="font-weight: 600; color: var(--sand-yellow); display: flex; align-items: center; gap: 5px;">
+                        ${warningIcon}${board.name}${statusText}
+                    </div>
+                    <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 5px;">
+                        ${board.categories.length} categories, ${board.questions.reduce((sum, row) => sum + (Array.isArray(row) ? row.length : 0), 0)} questions
+                    </div>
+                `;
+                boardItem.onclick = () => editBoard(board.id);
+                boardItem.onmouseenter = () => {
+                    boardItem.style.borderColor = isComplete ? 'var(--firework-gold)' : 'var(--tropical-orange)';
+                    boardItem.style.background = 'rgba(255,255,255,0.15)';
+                };
+                boardItem.onmouseleave = () => {
+                    boardItem.style.borderColor = 'transparent';
+                    boardItem.style.background = 'rgba(255,255,255,0.1)';
+                };
+                boardsList.appendChild(boardItem);
+            });
+        }
+
+        function createNewBoard() {
+            const newBoard = {
+                id: 'board-' + Date.now(),
+                name: 'New Board',
+                categories: ['Category 1', 'Category 2', 'Category 3', 'Category 4', 'Category 5'],
+                questions: [
+                    // Initialize with empty questions for 5 rows
+                    Array(5).fill(null).map((_, i) => ({
+                        category: 'Category 1',
+                        points: 100 * (i + 1),
+                        question: '',
+                        answer: '',
+                        clue: ''
+                    })),
+                    Array(5).fill(null).map((_, i) => ({
+                        category: 'Category 2',
+                        points: 100 * (i + 1),
+                        question: '',
+                        answer: '',
+                        clue: ''
+                    })),
+                    Array(5).fill(null).map((_, i) => ({
+                        category: 'Category 3',
+                        points: 100 * (i + 1),
+                        question: '',
+                        answer: '',
+                        clue: ''
+                    })),
+                    Array(5).fill(null).map((_, i) => ({
+                        category: 'Category 4',
+                        points: 100 * (i + 1),
+                        question: '',
+                        answer: '',
+                        clue: ''
+                    })),
+                    Array(5).fill(null).map((_, i) => ({
+                        category: 'Category 5',
+                        points: 100 * (i + 1),
+                        question: '',
+                        answer: '',
+                        clue: ''
+                    }))
+                ]
+            };
+
+            allBoards.push(newBoard);
+            saveBoards();
+            editBoard(newBoard.id);
+            renderBoardsList();
+        }
+
+        function editBoard(boardId) {
+            const board = allBoards.find(b => b.id === boardId);
+            if (!board) return;
+
+            currentEditingBoardId = boardId;
+            document.getElementById('board-editor-placeholder').style.display = 'none';
+            document.getElementById('board-editor').style.display = 'block';
+
+            // Set board name
+            document.getElementById('board-name-input').value = board.name;
+
+            // Render categories editor
+            renderCategoriesEditor(board);
+        }
+
+        function renderCategoriesEditor(board) {
+            const categoriesEditor = document.getElementById('categories-editor');
+            categoriesEditor.innerHTML = '';
+
+            // Add category management
+            const categoryHeader = document.createElement('div');
+            categoryHeader.style.cssText = 'margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;';
+            categoryHeader.innerHTML = `
+                <h4 style="color: var(--sand-yellow); margin-bottom: 10px;">Categories</h4>
+                <div id="categories-list"></div>
+                <button onclick="addCategory()" class="modal-btn" style="margin-top: 10px; padding: 8px 15px; font-size: 0.9rem; background: linear-gradient(135deg, var(--palm-green) 0%, var(--ocean-blue) 100%);">
+                    + Add Category
+                </button>
+            `;
+            categoriesEditor.appendChild(categoryHeader);
+
+            // Render categories
+            const categoriesList = document.getElementById('categories-list');
+            board.categories.forEach((cat, catIndex) => {
+                const catItem = document.createElement('div');
+                catItem.style.cssText = 'display: flex; gap: 10px; margin: 5px 0; align-items: center;';
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = cat;
+                input.style.cssText = 'flex: 1; padding: 8px; border-radius: 5px; border: 2px solid var(--firework-gold); background: rgba(255,255,255,0.2); color: white;';
+                input.onchange = () => {
+                    const oldCategoryName = cat;
+                    const newCategoryName = input.value;
+                    board.categories[catIndex] = newCategoryName;
+
+                    // Update all questions in this category using normalized comparison
+                    const normalizedOldName = normalizeCategoryName(oldCategoryName);
+                    board.questions.forEach(row => {
+                        if (Array.isArray(row)) {
+                            row.forEach(q => {
+                                if (q && q.category) {
+                                    const normalizedQuestionCategory = normalizeCategoryName(q.category);
+                                    // Match using normalized names to catch renamed categories
+                                    if (normalizedQuestionCategory === normalizedOldName || q.category === oldCategoryName) {
+                                        q.category = newCategoryName;
+                                    }
+                                }
+                            });
+                        }
+                    });
+
+                    // Re-render the editor to reflect the changes
+                    renderCategoriesEditor(board);
+                };
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '×';
+                deleteBtn.style.cssText = 'padding: 8px 12px; background: linear-gradient(135deg, var(--sunset-pink) 0%, var(--tropical-orange) 100%); border: none; border-radius: 5px; cursor: pointer; color: white; font-weight: bold;';
+                deleteBtn.onclick = () => {
+                    if (confirm(`Delete category "${cat}"? This will remove all questions in this category.`)) {
+                        const categoryToDelete = cat;
+                        const normalizedCategoryToDelete = normalizeCategoryName(categoryToDelete);
+
+                        board.categories.splice(catIndex, 1);
+                        // Remove questions from this category using normalized comparison
+                        board.questions.forEach(row => {
+                            if (Array.isArray(row)) {
+                                for (let i = row.length - 1; i >= 0; i--) {
+                                    if (row[i] && row[i].category) {
+                                        const normalizedQuestionCategory = normalizeCategoryName(row[i].category);
+                                        // Match using normalized names to catch renamed categories
+                                        if (normalizedQuestionCategory === normalizedCategoryToDelete || row[i].category === categoryToDelete) {
+                                            row.splice(i, 1);
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        renderCategoriesEditor(board);
+                    }
+                };
+                catItem.appendChild(input);
+                catItem.appendChild(deleteBtn);
+                categoriesList.appendChild(catItem);
+            });
+
+            // Add questions editor for each category
+            const pointsValues = [100, 200, 300, 400, 500];
+            board.categories.forEach((category, catIndex) => {
+                const categorySection = document.createElement('div');
+                categorySection.style.cssText = 'margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 2px solid var(--ocean-blue);';
+                categorySection.innerHTML = `<h4 style="color: var(--palm-green); margin-bottom: 15px;">${category}</h4>`;
+
+                pointsValues.forEach((points, rowIndex) => {
+                    // Find question for this category and points using normalized comparison
+                    let question = null;
+                    const normalizedCategory = normalizeCategoryName(category);
+
+                    if (board.questions[rowIndex] && Array.isArray(board.questions[rowIndex])) {
+                        question = board.questions[rowIndex].find(q => {
+                            if (!q || !q.category) return false;
+                            // Use normalized comparison to find questions even if category was renamed
+                            const normalizedQuestionCategory = normalizeCategoryName(q.category);
+                            return normalizedQuestionCategory === normalizedCategory && q.points === points;
+                        });
+
+                        // If question found but has different category name (due to renaming), update it
+                        if (question && question.category !== category) {
+                            question.category = category;
+                        }
+                    }
+
+                    // If question doesn't exist, create it
+                    // But first, check if there are any duplicate questions for this category/points and remove them
+                    if (!question) {
+                        if (!board.questions[rowIndex]) {
+                            board.questions[rowIndex] = [];
+                        }
+
+                        // Remove any duplicate questions for this category/points before creating a new one
+                        const normalizedCategory = normalizeCategoryName(category);
+                        board.questions[rowIndex] = board.questions[rowIndex].filter(q => {
+                            if (!q || !q.category) return true;
+                            const normalizedQuestionCategory = normalizeCategoryName(q.category);
+                            return !(normalizedQuestionCategory === normalizedCategory && q.points === points);
+                        });
+
+                        question = {
+                            category: category,
+                            points: points,
+                            question: '',
+                            answer: '',
+                            clue: ''
+                        };
+                        board.questions[rowIndex].push(question);
+                    } else {
+                        // Question exists, but remove any duplicates
+                        const normalizedCategory = normalizeCategoryName(category);
+                        const questionIndex = board.questions[rowIndex].indexOf(question);
+                        board.questions[rowIndex] = board.questions[rowIndex].filter((q, idx) => {
+                            if (idx === questionIndex) return true; // Keep the one we found
+                            if (!q || !q.category) return true;
+                            const normalizedQuestionCategory = normalizeCategoryName(q.category);
+                            return !(normalizedQuestionCategory === normalizedCategory && q.points === points);
+                        });
+                    }
+
+                    const questionDiv = document.createElement('div');
+                    questionDiv.style.cssText = 'margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;';
+
+                    // Escape category name for use in HTML attributes
+                    const escapedCategory = category.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const questionValue = (question.question || '').replace(/"/g, '&quot;').replace(/'/g, "\\'");
+                    const answerValue = (question.answer || '').replace(/"/g, '&quot;').replace(/'/g, "\\'");
+                    const clueValue = (question.clue || '').replace(/"/g, '&quot;').replace(/'/g, "\\'");
+
+                    questionDiv.innerHTML = `
+                        <div style="color: var(--firework-gold); font-weight: 600; margin-bottom: 8px;">${points} Points</div>
+                        <input type="text" placeholder="Question" value="${questionValue}"
+                            oninput="updateQuestion(${rowIndex}, '${escapedCategory}', ${points}, 'question', this.value)"
+                            onchange="updateQuestion(${rowIndex}, '${escapedCategory}', ${points}, 'question', this.value)"
+                            onblur="updateQuestion(${rowIndex}, '${escapedCategory}', ${points}, 'question', this.value)"
+                            style="width: 100%; padding: 8px; margin: 5px 0; border-radius: 5px; border: 2px solid var(--firework-gold); background: rgba(255,255,255,0.2); color: white;">
+                        <input type="text" placeholder="Answer" value="${answerValue}"
+                            oninput="updateQuestion(${rowIndex}, '${escapedCategory}', ${points}, 'answer', this.value)"
+                            onchange="updateQuestion(${rowIndex}, '${escapedCategory}', ${points}, 'answer', this.value)"
+                            onblur="updateQuestion(${rowIndex}, '${escapedCategory}', ${points}, 'answer', this.value)"
+                            style="width: 100%; padding: 8px; margin: 5px 0; border-radius: 5px; border: 2px solid var(--firework-gold); background: rgba(255,255,255,0.2); color: white;">
+                        <input type="text" placeholder="Clue (optional)" value="${clueValue}"
+                            oninput="updateQuestion(${rowIndex}, '${escapedCategory}', ${points}, 'clue', this.value)"
+                            onchange="updateQuestion(${rowIndex}, '${escapedCategory}', ${points}, 'clue', this.value)"
+                            onblur="updateQuestion(${rowIndex}, '${escapedCategory}', ${points}, 'clue', this.value)"
+                            style="width: 100%; padding: 8px; margin: 5px 0; border-radius: 5px; border: 2px solid var(--firework-gold); background: rgba(255,255,255,0.2); color: white;">
+                    `;
+                    categorySection.appendChild(questionDiv);
+                });
+
+                categoriesEditor.appendChild(categorySection);
+            });
+        }
+
+        function updateQuestion(rowIndex, category, points, field, value) {
+            const board = allBoards.find(b => b.id === currentEditingBoardId);
+            if (!board) {
+                console.warn('updateQuestion: Board not found');
+                return;
+            }
+
+            if (!board.questions[rowIndex]) {
+                board.questions[rowIndex] = [];
+            }
+
+            // Use normalized comparison to find questions even if category was renamed
+            const normalizedCategory = normalizeCategoryName(category);
+            let question = board.questions[rowIndex].find(q => {
+                if (!q || !q.category) return false;
+                const normalizedQuestionCategory = normalizeCategoryName(q.category);
+                return normalizedQuestionCategory === normalizedCategory && q.points === points;
+            });
+
+            if (!question) {
+                question = { category: category, points: points, question: '', answer: '', clue: '' };
+                board.questions[rowIndex].push(question);
+            }
+
+            // Update the field value (ensure it's a string, not null/undefined)
+            const newValue = (value !== null && value !== undefined) ? String(value) : '';
+            question[field] = newValue;
+
+            // Also update the category name to match the current category (in case it was renamed)
+            if (question.category !== category) {
+                question.category = category;
+            }
+        }
+
+        function addCategory() {
+            const board = allBoards.find(b => b.id === currentEditingBoardId);
+            if (!board) return;
+
+            const newCategoryName = prompt('Enter category name:');
+            if (newCategoryName) {
+                board.categories.push(newCategoryName);
+
+                // Add questions for this category
+                const pointsValues = [100, 200, 300, 400, 500];
+                pointsValues.forEach((points, rowIndex) => {
+                    if (!board.questions[rowIndex]) {
+                        board.questions[rowIndex] = [];
+                    }
+                    board.questions[rowIndex].push({
+                        category: newCategoryName,
+                        points: points,
+                        question: '',
+                        answer: '',
+                        clue: ''
+                    });
+                });
+
+                renderCategoriesEditor(board);
+            }
+        }
+
+        // Debug function to check why a board is incomplete (kept for debugging if needed)
+        function debugBoardCompleteness(board) {
+            if (!board) return false;
+
+            const pointsValues = [100, 200, 300, 400, 500];
+            let missingCount = 0;
+            let incompleteCount = 0;
+
+            for (let category of board.categories) {
+                const normalizedCategory = normalizeCategoryName(category);
+
+                for (let points of pointsValues) {
+                    let found = false;
+                    let question = null;
+
+                    for (let rowIndex = 0; rowIndex < board.questions.length; rowIndex++) {
+                        const row = board.questions[rowIndex];
+                        if (Array.isArray(row)) {
+                            question = row.find(q => {
+                                if (!q || !q.category) return false;
+                                const normalizedQuestionCategory = normalizeCategoryName(q.category);
+                                return normalizedQuestionCategory === normalizedCategory && q.points === points;
+                            });
+                            if (question) {
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!found) {
+                        missingCount++;
+                    } else {
+                        const hasQuestion = question.question && question.question.trim() !== '';
+                        const hasAnswer = question.answer && question.answer.trim() !== '';
+                        if (!hasQuestion || !hasAnswer) {
+                            incompleteCount++;
+                        }
+                    }
+                }
+            }
+
+            return missingCount === 0 && incompleteCount === 0;
+        }
+
+        function saveCurrentBoard() {
+            if (!currentEditingBoardId) return;
+
+            const board = allBoards.find(b => b.id === currentEditingBoardId);
+            if (!board) return;
+
+            // Update board name
+            board.name = document.getElementById('board-name-input').value || 'Unnamed Board';
+
+            // Before saving, sync all input values to ensure nothing is lost
+            // This captures any values that might not have triggered updateQuestion
+            const categoriesEditor = document.getElementById('categories-editor');
+            if (categoriesEditor) {
+                const allInputs = categoriesEditor.querySelectorAll('input[type="text"]');
+                allInputs.forEach((input) => {
+                    // Extract parameters from the input's event handlers
+                    const onchangeAttr = input.getAttribute('onchange') || input.getAttribute('oninput') || input.getAttribute('onblur') || '';
+                    const match = onchangeAttr.match(/updateQuestion\((\d+),\s*'([^']+)',\s*(\d+),\s*'(\w+)',/);
+                    if (match) {
+                        const rowIndex = parseInt(match[1]);
+                        const category = match[2].replace(/\\'/g, "'").replace(/&quot;/g, '"'); // Unescape
+                        const points = parseInt(match[3]);
+                        const field = match[4];
+                        const value = input.value || '';
+                        // Update the question with current input value
+                        updateQuestion(rowIndex, category, points, field, value);
+                    }
+                });
+            }
+
+            // Clean up duplicate questions AFTER syncing - rebuild each row with exactly one question per category/points
+            const pointsValues = [100, 200, 300, 400, 500];
+
+            board.questions.forEach((row, rowIndex) => {
+                if (Array.isArray(row)) {
+                    const questionsByKey = new Map();
+                    const points = pointsValues[rowIndex];
+
+                    // Collect all questions for this row, keeping the best one for each category
+                    // Each row is for a specific point value, so we just deduplicate by category
+                    row.forEach(q => {
+                        if (!q || !q.category) return;
+                        const normalizedCategory = normalizeCategoryName(q.category);
+                        const key = normalizedCategory; // Just use category name, since all questions in this row have same points
+
+                        if (!questionsByKey.has(key)) {
+                            questionsByKey.set(key, q);
+                        } else {
+                            // Compare and keep the better one
+                            const existing = questionsByKey.get(key);
+                            const existingHasQ = existing.question && existing.question.trim();
+                            const existingHasA = existing.answer && existing.answer.trim();
+                            const currentHasQ = q.question && q.question.trim();
+                            const currentHasA = q.answer && q.answer.trim();
+
+                            // Prefer the one with both question and answer
+                            if (currentHasQ && currentHasA && (!existingHasQ || !existingHasA)) {
+                                questionsByKey.set(key, q);
+                            } else if (currentHasQ && !existingHasQ) {
+                                questionsByKey.set(key, q);
+                            } else if (currentHasA && !existingHasA) {
+                                questionsByKey.set(key, q);
+                            }
+                        }
+                    });
+
+                    // Rebuild row: one question per category in order
+                    const newRow = [];
+                    board.categories.forEach(category => {
+                        const normalizedCategory = normalizeCategoryName(category);
+                        if (questionsByKey.has(normalizedCategory)) {
+                            const q = questionsByKey.get(normalizedCategory);
+                            // Ensure the question has the correct points value
+                            q.points = points;
+                            q.category = category; // Ensure category name matches exactly
+                            newRow.push(q);
+                        } else {
+                            // Create empty question if missing
+                            newRow.push({
+                                category: category,
+                                points: points,
+                                question: '',
+                                answer: '',
+                                clue: ''
+                            });
+                        }
+                    });
+
+                    board.questions[rowIndex] = newRow;
+                }
+            });
+
+            // Don't clean up empty questions - allow incomplete boards to be saved
+            // The validation will mark them as incomplete
+
+            saveBoards();
+            updateBoardSelector();
+            renderBoardsList();
+
+            // Validate using the board that was just saved (from allBoards)
+            const savedBoard = allBoards.find(b => b.id === currentEditingBoardId);
+            const boardToValidate = savedBoard || board;
+            const isComplete = isBoardComplete(boardToValidate);
+
+            if (isComplete) {
+                alert('Board saved successfully!');
+            } else {
+                alert('Board saved, but it is incomplete. Complete all questions to use this board in a game.');
+            }
+        }
+
+        function deleteCurrentBoard() {
+            if (!currentEditingBoardId) return;
+
+            const board = allBoards.find(b => b.id === currentEditingBoardId);
+            if (!board) return;
+
+            // Don't allow deleting default boards
+            if (board.id.startsWith('default-')) {
+                alert('Cannot delete default boards.');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to delete "${board.name}"?`)) {
+                const index = allBoards.findIndex(b => b.id === currentEditingBoardId);
+                if (index > -1) {
+                    allBoards.splice(index, 1);
+                    saveBoards();
+                    updateBoardSelector();
+                    renderBoardsList();
+                    currentEditingBoardId = null;
+                    document.getElementById('board-editor').style.display = 'none';
+                    document.getElementById('board-editor-placeholder').style.display = 'block';
+                }
+            }
+        }
+
         // Add reset button to menu
         window.addEventListener('DOMContentLoaded', () => {
+            // Initialize default boards from seeder after scripts have loaded
+            // Wait a bit to ensure seed-questions.js has loaded
+            setTimeout(() => {
+                initializeDefaultBoards();
+                // Update button text after boards are loaded
+                updateStartButtonText();
+            }, 100);
             const menuContent = document.querySelector('.menu-content');
+
+            // Reset Game button
             const resetBtn = document.createElement('button');
             resetBtn.className = 'start-btn';
             resetBtn.style.background = 'linear-gradient(135deg, var(--sunset-pink) 0%, var(--tropical-orange) 100%)';
@@ -1792,6 +2675,15 @@
             resetBtn.textContent = 'Reset Game 🔄';
             resetBtn.onclick = resetGame;
             menuContent.appendChild(resetBtn);
+
+            // Clear Storage button (for debugging)
+            const clearStorageBtn = document.createElement('button');
+            clearStorageBtn.className = 'start-btn';
+            clearStorageBtn.style.background = 'linear-gradient(135deg, var(--tropical-orange) 0%, var(--sunset-pink) 100%)';
+            clearStorageBtn.style.marginTop = '10px';
+            clearStorageBtn.textContent = 'Clear Storage 🗑️';
+            clearStorageBtn.onclick = clearBoardStorage;
+            menuContent.appendChild(clearStorageBtn);
         });
     </script>
 </body>

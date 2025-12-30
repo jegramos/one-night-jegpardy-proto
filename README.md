@@ -8,25 +8,40 @@ A modern, interactive Jeopardy game with a Hawaiian New Year party theme!
 - 🎆 Smooth animations and visual effects (fireworks, confetti)
 - 👥 Support for 0-10 teams with customizable names
 - 💾 Auto-save progress using localStorage
+- 📋 Board management - create and manage multiple game boards
+- 🎮 Resume game functionality
 - ⌨️ Full keyboard shortcuts support
 - 📱 Responsive design for mobile and desktop
 
 ## How to Play
 
 1. Open `index.html` in your web browser
-2. Select the number of teams
-3. Click "Start Game!"
-4. Click on any question to reveal it
-5. Press `Space` to reveal the answer
-6. **After revealing the answer**, click on a team to select them, then:
+2. Select a game board from the dropdown
+3. Select the number of teams
+4. Click "Start Game!" (or "Resume Game" if you have a saved game)
+5. Click on any question to reveal it
+6. Press `Space` to reveal the answer
+7. **After revealing the answer**, click on a team to select them, then:
    - Click "✓ Correct" to add points
    - Click "✗ Wrong" to subtract points
    - Or use keyboard shortcuts (see below)
-7. Press `ESC` to continue to the next question
+8. Press `ESC` to continue to the next question
+
+## Board Management
+
+Click "Manage Boards" to:
+
+- Create custom game boards
+- Edit existing boards (categories and questions)
+- Delete boards
+- Boards are automatically saved to localStorage
+
+**Note:** Incomplete boards (with missing questions) can be saved but won't be selectable for games until completed.
 
 ## Keyboard Shortcuts
 
 ### In Modal (Question/Answer Screen)
+
 - `Space` - Reveal answer
 - `ESC` - Close modal / Continue
 - `1-9` - Select team (after answer is revealed)
@@ -34,51 +49,14 @@ A modern, interactive Jeopardy game with a Hawaiian New Year party theme!
 - `↓` - Subtract points from selected team (Wrong answer)
 
 ### Anytime
+
 - Click team names and scores to edit them directly
-
-## How to Update Questions
-
-All questions are stored in `questions.js` - simply edit this file to update the game content!
-
-### Structure
-
-```javascript
-const jeopardyQuestions = {
-    categories: [
-        "Category 1",
-        "Category 2",
-        // ... up to 5 categories
-    ],
-    
-    questions: [
-        // Row 1 - 100 points
-        [
-            {
-                category: "Category 1",
-                points: 100,
-                question: "Your question here",
-                answer: "Your answer here"
-            },
-            // ... 5 questions (one per category)
-        ],
-        // ... up to 5 rows (100, 200, 300, 400, 500 points)
-    ]
-};
-```
-
-### Tips for Editing Questions
-
-1. Keep the same structure (5 categories, 5 rows of questions)
-2. Points should be: 100, 200, 300, 400, 500
-3. Make sure each question's `category` matches one of the categories in the `categories` array
-4. You can use HTML in questions and answers (e.g., `<br>` for line breaks)
-5. Add emojis to categories for extra flair! 🎉
 
 ## Files
 
 - `index.html` - Main game file (UI and game logic)
-- `questions.js` - All questions and categories (edit this to update content)
-- `2025-12-30-276.html` - Original reference file
+- `seed-questions.js` - Default game boards (seeded on load)
+- Custom boards are stored in browser localStorage
 
 ## Customization
 
@@ -99,13 +77,10 @@ Edit the CSS variables in `index.html`:
 }
 ```
 
-### Add More Teams
-
-The game supports up to 10 teams by default. To increase this, update the team selector options in `index.html`.
-
 ## Browser Compatibility
 
 Works best in modern browsers:
+
 - Chrome/Edge (recommended)
 - Firefox
 - Safari
@@ -113,6 +88,7 @@ Works best in modern browsers:
 ## Credits
 
 Created with ❤️ using:
+
 - Vanilla JavaScript
 - Google Fonts (Righteous, Poppins)
 - Animate.css
@@ -120,4 +96,3 @@ Created with ❤️ using:
 ---
 
 **Happy New Year! 🎊 Maligayang Bagong Taon! 🌺**
-
