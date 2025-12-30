@@ -1338,6 +1338,28 @@
         </div>
     </div>
 
+    <!-- Board Switch Confirmation Modal -->
+    <div id="board-switch-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px; padding: 30px;">
+            <div class="modal-header">
+                <h2 style="color: white; margin: 0; text-align: center;">⚠️ Switch Board?</h2>
+            </div>
+            <div style="margin-top: 20px; text-align: center;">
+                <p id="board-switch-message" style="color: white; font-size: 1.1rem; line-height: 1.6; margin-bottom: 30px;">
+                    <!-- Message will be set dynamically -->
+                </p>
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <button class="modal-btn" id="board-switch-confirm" onclick="confirmBoardSwitch()" style="background: linear-gradient(135deg, var(--tropical-orange) 0%, var(--sunset-pink) 100%); padding: 12px 24px; font-size: 1rem;">
+                        Switch & Reset
+                    </button>
+                    <button class="modal-btn close-btn" onclick="cancelBoardSwitch()" style="background: transparent; border: 2px solid rgba(255,255,255,0.3); color: white; box-shadow: none; padding: 12px 24px; font-size: 1rem;">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Winner Screen -->
     <div id="winner-screen" class="winner-screen">
         <div class="winner-content">
@@ -1817,14 +1839,18 @@
             const modal = document.getElementById('modal');
             const boardManagerModal = document.getElementById('board-manager-modal');
             const personalizeModal = document.getElementById('personalize-modal');
+            const boardSwitchModal = document.getElementById('board-switch-modal');
             const isModalOpen = modal.classList.contains('active');
             const isBoardManagerOpen = boardManagerModal && boardManagerModal.classList.contains('active');
             const isPersonalizeOpen = personalizeModal && personalizeModal.classList.contains('active');
+            const isBoardSwitchOpen = boardSwitchModal && boardSwitchModal.classList.contains('active');
             const isTeamSelectionVisible = document.getElementById('modal-teams').classList.contains('visible');
 
             // ESC - Close modals
             if (e.key === 'Escape') {
-                if (isPersonalizeOpen) {
+                if (isBoardSwitchOpen) {
+                    cancelBoardSwitch();
+                } else if (isPersonalizeOpen) {
                     closePersonalize();
                 } else if (isBoardManagerOpen) {
                     closeBoardManager();
@@ -1875,6 +1901,7 @@
         function saveGameState() {
             try {
                 const state = {
+                    boardId: gameState.currentBoard ? gameState.currentBoard.id : null,
                     teams: gameState.teams,
                     answeredQuestions: Array.from(gameState.answeredQuestions)
                 };
@@ -1890,8 +1917,19 @@
                 if (saved) {
                     const state = JSON.parse(saved);
                     // Check if there's meaningful game data (teams or answered questions)
-                    return (state.teams && state.teams.length > 0) ||
-                           (state.answeredQuestions && state.answeredQuestions.length > 0);
+                    const hasData = (state.teams && state.teams.length > 0) ||
+                                   (state.answeredQuestions && state.answeredQuestions.length > 0);
+                    if (!hasData) return false;
+
+                    // Check if saved state is for the currently selected board
+                    const boardSelect = document.getElementById('board-select');
+                    const selectedBoardId = boardSelect ? boardSelect.value : null;
+                    if (selectedBoardId && state.boardId && state.boardId !== selectedBoardId) {
+                        // Saved state is for a different board, so don't show resume option
+                        return false;
+                    }
+
+                    return true;
                 }
             } catch (e) {
                 // If parsing fails, assume no saved state
@@ -1910,11 +1948,111 @@
             }
         }
 
+        function checkForDifferentBoardState(selectedBoardId) {
+            try {
+                const saved = localStorage.getItem('hawaiianJeopardyState');
+                if (saved) {
+                    const state = JSON.parse(saved);
+                    // Check if there's meaningful game data
+                    const hasData = (state.teams && state.teams.length > 0) ||
+                                   (state.answeredQuestions && state.answeredQuestions.length > 0);
+                    if (hasData && state.boardId && state.boardId !== selectedBoardId) {
+                        return true; // There's a saved game for a different board
+                    }
+                }
+            } catch (e) {
+                // If parsing fails, assume no saved state
+            }
+            return false;
+        }
+
+        function clearGameState() {
+            localStorage.removeItem('hawaiianJeopardyState');
+            gameState.teams = [];
+            gameState.answeredQuestions = new Set();
+            gameState.currentQuestion = null;
+            gameState.activeTeam = null;
+            gameState.modalSelectedTeam = null;
+            gameState.currentBoard = null;
+        }
+
+        let pendingBoardSwitch = null; // Store the board ID that user wants to switch to
+
+        function showBoardSwitchModal(newBoardId, newBoardName) {
+            const saved = localStorage.getItem('hawaiianJeopardyState');
+            let oldBoardName = 'another board';
+            if (saved) {
+                try {
+                    const state = JSON.parse(saved);
+                    if (state.boardId) {
+                        const oldBoard = allBoards.find(b => b.id === state.boardId);
+                        if (oldBoard) {
+                            oldBoardName = oldBoard.name;
+                        }
+                    }
+                } catch (e) {
+                    // Use default name
+                }
+            }
+
+            const message = `You have an ongoing game on "${oldBoardName}".\n\nSwitching to "${newBoardName}" will reset your current game progress.\n\nDo you want to continue?`;
+            document.getElementById('board-switch-message').textContent = message;
+            pendingBoardSwitch = newBoardId;
+            document.getElementById('board-switch-modal').classList.add('active');
+        }
+
+        function confirmBoardSwitch() {
+            if (pendingBoardSwitch) {
+                clearGameState();
+                const boardSelect = document.getElementById('board-select');
+                if (boardSelect) {
+                    boardSelect.value = pendingBoardSwitch;
+                }
+                updateStartButtonText();
+            }
+            closeBoardSwitchModal();
+            pendingBoardSwitch = null;
+        }
+
+        function cancelBoardSwitch() {
+            // Revert to previous board
+            const saved = localStorage.getItem('hawaiianJeopardyState');
+            if (saved) {
+                try {
+                    const state = JSON.parse(saved);
+                    if (state.boardId) {
+                        const boardSelect = document.getElementById('board-select');
+                        if (boardSelect) {
+                            const previousBoard = allBoards.find(b => b.id === state.boardId);
+                            if (previousBoard && isBoardComplete(previousBoard)) {
+                                boardSelect.value = state.boardId;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    // If we can't restore, just close modal
+                }
+            }
+            closeBoardSwitchModal();
+            pendingBoardSwitch = null;
+        }
+
+        function closeBoardSwitchModal() {
+            document.getElementById('board-switch-modal').classList.remove('active');
+        }
+
         function loadGameState() {
             try {
                 const saved = localStorage.getItem('hawaiianJeopardyState');
                 if (saved) {
                     const state = JSON.parse(saved);
+
+                    // Only load state if it's for the current board
+                    if (gameState.currentBoard && state.boardId && state.boardId !== gameState.currentBoard.id) {
+                        // Saved state is for a different board, clear it
+                        localStorage.removeItem('hawaiianJeopardyState');
+                        return;
+                    }
 
                     // Restore teams
                     if (state.teams && state.teams.length === gameState.teams.length) {
@@ -2770,6 +2908,27 @@
                 updateStartButtonText();
                 // Load title and subtitle
                 loadTitleAndSubtitle();
+
+                // Update button text when board selector changes
+                const boardSelect = document.getElementById('board-select');
+                if (boardSelect) {
+                    boardSelect.addEventListener('change', () => {
+                        const selectedBoardId = boardSelect.value;
+
+                        // Check if there's a saved game state for a different board
+                        if (checkForDifferentBoardState(selectedBoardId)) {
+                            // Get the board name for display
+                            const board = allBoards.find(b => b.id === selectedBoardId);
+                            const boardName = board ? board.name : 'the selected board';
+
+                            // Show confirmation modal
+                            showBoardSwitchModal(selectedBoardId, boardName);
+                        } else {
+                            // No conflict, just update button text
+                            updateStartButtonText();
+                        }
+                    });
+                }
             }, 100);
             const menuContent = document.querySelector('.menu-content');
 
