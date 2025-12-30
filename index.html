@@ -101,6 +101,7 @@
             min-height: 100vh;
             text-align: center;
             padding: 20px;
+            position: relative;
         }
 
         #menu-screen h1 {
@@ -2789,6 +2790,37 @@
             clearStorageBtn.textContent = 'Clear Storage 🗑️';
             clearStorageBtn.onclick = clearBoardStorage;
             menuContent.appendChild(clearStorageBtn);
+
+            // Credit footer - bottom right of main menu
+            const menuScreen = document.querySelector('#menu-screen');
+            const creditDiv = document.createElement('div');
+            creditDiv.style.position = 'absolute';
+            creditDiv.style.bottom = '20px';
+            creditDiv.style.right = '20px';
+            creditDiv.style.textAlign = 'right';
+            const creditLink = document.createElement('a');
+            creditLink.href = 'https://github.com/jegramos/one-night-jegpardy-proto';
+            creditLink.target = '_blank';
+            creditLink.rel = 'noopener noreferrer';
+            creditLink.style.color = 'rgba(255, 255, 255, 0.6)';
+            creditLink.style.textDecoration = 'underline';
+            creditLink.style.textDecorationColor = 'rgba(255, 255, 255, 0.4)';
+            creditLink.style.textUnderlineOffset = '2px';
+            creditLink.style.fontSize = '0.75rem';
+            creditLink.style.fontFamily = "'Poppins', sans-serif";
+            creditLink.style.transition = 'color 0.3s ease, text-decoration-color 0.3s ease';
+            creditLink.style.cursor = 'pointer';
+            creditLink.textContent = 'Free and open source at https://github.com/jegramos';
+            creditLink.onmouseover = function() {
+                this.style.color = 'rgba(255, 255, 255, 0.9)';
+                this.style.textDecorationColor = 'rgba(255, 255, 255, 0.7)';
+            };
+            creditLink.onmouseout = function() {
+                this.style.color = 'rgba(255, 255, 255, 0.6)';
+                this.style.textDecorationColor = 'rgba(255, 255, 255, 0.4)';
+            };
+            creditDiv.appendChild(creditLink);
+            menuScreen.appendChild(creditDiv);
         });
     </script>
 </body>
