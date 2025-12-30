@@ -67,10 +67,16 @@ Works best in modern browsers:
 
 ## Credits
 
-Created with ❤️ using:
+Vibe Coded with:
 
 - Vanilla JavaScript
 - Google Fonts (Righteous, Poppins)
 - Animate.css
 
 ---
+
+<img width="1512" height="948" alt="image" src="https://github.com/user-attachments/assets/a01bdf69-6260-4c1f-9246-1253b01ee546" />
+
+<img width="1512" height="951" alt="image" src="https://github.com/user-attachments/assets/b3a894e1-6696-4114-ba6a-7c2ff35fe3cb" />
+
+
