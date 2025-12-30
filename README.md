@@ -1,11 +1,10 @@
-# Hawaiian New Year Jeopardy Game 🌺🎆
+# Jeopardy Game 🎆
 
-A modern, interactive Jeopardy game with a Hawaiian New Year party theme!
+A modern, interactive Jeopardy game!
 
 ## Features
 
-- 🏝️ Beautiful Hawaiian-themed UI with tropical colors and animations
-- 🎆 Smooth animations and visual effects (fireworks, confetti)
+- 🎆 Smooth animations and visual effects
 - 👥 Support for 0-10 teams with customizable names
 - 💾 Auto-save progress using localStorage
 - 📋 Board management - create and manage multiple game boards
@@ -58,25 +57,6 @@ Click "Manage Boards" to:
 - `seed-questions.js` - Default game boards (seeded on load)
 - Custom boards are stored in browser localStorage
 
-## Customization
-
-### Change Theme Colors
-
-Edit the CSS variables in `index.html`:
-
-```css
-:root {
-    --tropical-orange: #FF6B35;
-    --ocean-blue: #004E89;
-    --sunset-pink: #FF5E78;
-    --palm-green: #00A878;
-    --sand-yellow: #FFD23F;
-    --night-purple: #3D2C8D;
-    --firework-gold: #FFD700;
-    --deep-ocean: #001F3F;
-}
-```
-
 ## Browser Compatibility
 
 Works best in modern browsers:
@@ -94,5 +74,3 @@ Created with ❤️ using:
 - Animate.css
 
 ---
-
-**Happy New Year! 🎊 Maligayang Bagong Taon! 🌺**
